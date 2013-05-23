@@ -26,7 +26,7 @@ module HerokuHeadless
       cleanup
     end
 
-    private 
+    private
 
     def prep_temp_dir
       @tmpdir = Pathname.new( Dir.tmpdir ).join('heroku-deployer').join(@uid)
@@ -66,7 +66,7 @@ module HerokuHeadless
     def add_ssh_key
       heroku.post_key(public_ssh_key)
     end
-    
+
     def remove_ssh_key
       heroku.delete_key(ssh_key_name)
     end
@@ -87,7 +87,9 @@ module HerokuHeadless
     end
 
     def push_git
-      system( {'GIT_SSH'=>custom_git_ssh_path.to_s}, "git push git@heroku.com:#{@app_name}.git HEAD:master" )
+      result = system( {'GIT_SSH'=>custom_git_ssh_path.to_s}, "git push git@heroku.com:#{@app_name}.git HEAD:master" )
+      puts "push resulted in #{result.inspect}"
+      File.open('heroku_push_result.log', 'w') {|f| f.write(result.inspect) }
     end
 
     def run_post_deploy_hooks
