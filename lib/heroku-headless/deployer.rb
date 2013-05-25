@@ -87,6 +87,7 @@ module HerokuHeadless
     end
 
     def push_git
+      result = system( {'GIT_SSH'=>custom_git_ssh_path.to_s}, "git pull git@heroku.com:#{@app_name}.git master " )
       result = system( {'GIT_SSH'=>custom_git_ssh_path.to_s}, "git push git@heroku.com:#{@app_name}.git HEAD:master --force" )
       puts "push resulted in #{result.inspect}"
       File.open('heroku_push_result.log', 'w') {|f| f.write(result.inspect) }
