@@ -87,7 +87,10 @@ module HerokuHeadless
     end
 
     def push_git
-      result = system( {'GIT_SSH'=>custom_git_ssh_path.to_s}, "git pull git@heroku.com:#{@app_name}.git master " )
+      result = system( {'GIT_SSH'=>custom_git_ssh_path.to_s}, "git remote add hh git@heroku.com:#{@app_name}.git " )
+
+      result = system( {'GIT_SSH'=>custom_git_ssh_path.to_s}, "git fetch hh master " )
+      result = system( {'GIT_SSH'=>custom_git_ssh_path.to_s}, "git merge hh/master -m \"merged by ci\" " )
       result = system( {'GIT_SSH'=>custom_git_ssh_path.to_s}, "git push git@heroku.com:#{@app_name}.git HEAD:master --force" )
       result
     end
