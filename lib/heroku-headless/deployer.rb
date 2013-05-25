@@ -20,10 +20,10 @@ module HerokuHeadless
       prep_temp_dir
       setup_ssh_key
       result = do_action('push git to heroku'){ push_head_to_app }
-      do_action('post_deploy_hooks'){ run_post_deploy_hooks }
+      do_action('post_deploy_hooks'){ run_post_deploy_hooks } if result
+      result
     ensure
       cleanup
-      return result
     end
 
     private
@@ -89,7 +89,6 @@ module HerokuHeadless
     def push_git
       result = system( {'GIT_SSH'=>custom_git_ssh_path.to_s}, "git pull git@heroku.com:#{@app_name}.git master " )
       result = system( {'GIT_SSH'=>custom_git_ssh_path.to_s}, "git push git@heroku.com:#{@app_name}.git HEAD:master --force" )
-      File.open('heroku_push_result.log', 'w') {|f| f.write(result.inspect) }
       result
     end
 
