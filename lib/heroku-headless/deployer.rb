@@ -11,12 +11,27 @@ module HerokuHeadless
       new(app_name,CreatesUIDs.generate_uid).deploy
     end
 
+    def self.pre_git_commands(app_name)
+      new(app_name,CreatesUIDs.generate_uid).pull
+    end
+
+
     def initialize( app_name, uid )
       @app_name = app_name
       @uid = uid
     end
 
     def deploy
+      prep_temp_dir
+      setup_ssh_key
+      result = do_action('push git to heroku'){ push_head_to_app }
+      result = result && do_action('post_deploy_hooks'){ run_post_deploy_hooks }
+      result
+    ensure
+      cleanup
+    end
+
+    def pull
       prep_temp_dir
       setup_ssh_key
       result = do_action('push git to heroku'){ push_head_to_app }
@@ -71,8 +86,14 @@ module HerokuHeadless
       heroku.delete_key(ssh_key_name)
     end
 
+    def pull_to_app
+      setup_custom_git_ssh
+      pull_git
+    end
+
     def push_head_to_app
       setup_custom_git_ssh
+      run_pre_deploy_git_commands
       push_git
     end
 
@@ -87,8 +108,16 @@ module HerokuHeadless
     end
 
     def push_git
-      result = system( {'GIT_SSH'=>custom_git_ssh_path.to_s}, "git pull git@heroku.com:#{@app_name}.git master " )
       result = system( {'GIT_SSH'=>custom_git_ssh_path.to_s}, "git push git@heroku.com:#{@app_name}.git HEAD:master --force" )
+      result
+    end
+    def run_pre_deploy_git_commands
+      HerokuHeadless.configuration.pre_deploy_git_commands.each do | command |
+        do_action( command ) { run_git_command(command) }
+      end
+    end
+    def run_git_command(command)
+      result = system( {'GIT_SSH'=>custom_git_ssh_path.to_s}, command )
       result
     end
 
