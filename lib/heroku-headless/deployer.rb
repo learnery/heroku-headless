@@ -11,27 +11,12 @@ module HerokuHeadless
       new(app_name,CreatesUIDs.generate_uid).deploy
     end
 
-    def self.pre_git_commands(app_name)
-      new(app_name,CreatesUIDs.generate_uid).pull
-    end
-
-
     def initialize( app_name, uid )
       @app_name = app_name
       @uid = uid
     end
 
     def deploy
-      prep_temp_dir
-      setup_ssh_key
-      result = do_action('push git to heroku'){ push_head_to_app }
-      result = result && do_action('post_deploy_hooks'){ run_post_deploy_hooks }
-      result
-    ensure
-      cleanup
-    end
-
-    def pull
       prep_temp_dir
       setup_ssh_key
       result = do_action('push git to heroku'){ push_head_to_app }
@@ -84,11 +69,6 @@ module HerokuHeadless
 
     def remove_ssh_key
       heroku.delete_key(ssh_key_name)
-    end
-
-    def pull_to_app
-      setup_custom_git_ssh
-      pull_git
     end
 
     def push_head_to_app
