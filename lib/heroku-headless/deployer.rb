@@ -20,7 +20,7 @@ module HerokuHeadless
       prep_temp_dir
       setup_ssh_key
       result = do_action('push git to heroku'){ push_head_to_app }
-      do_action('post_deploy_hooks'){ run_post_deploy_hooks } if result
+      result = result && do_action('post_deploy_hooks'){ run_post_deploy_hooks }
       result
     ensure
       cleanup
